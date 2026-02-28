@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pricing Intelligence Agent | Dashboard</title>
+  <meta name="description" content="AI-powered dynamic pricing intelligence dashboard for e-commerce product price analysis." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep:     #0d0f18;
+      --bg-card:     #13161f;
+      --bg-input:    #1a1d2b;
+      --border:      #242738;
+      --accent:      #6c63ff;
+      --accent-glow: rgba(108, 99, 255, 0.35);
+      --green:       #22c55e;
+      --red:         #ef4444;
+      --amber:       #f59e0b;
+      --text:        #e2e8f0;
+      --muted:       #64748b;
+      --radius:      12px;
+      --shadow:      0 8px 32px rgba(0,0,0,0.45);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────────── */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ───────────────────────────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .logo-pill {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--accent), #9c92ff);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.9rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+    }
+
+    header h1 {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, #c3b1ff, #6c63ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.3;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    /* ── Card ─────────────────────────────────────────────────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: var(--shadow);
+    }
+
+    /* ── Form ─────────────────────────────────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 0.45rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.7rem 1rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .form-group input::placeholder { color: var(--muted); opacity: 0.7; }
+
+    /* ── Button ───────────────────────────────────────────────────── */
+    #analyzeBtn {
+      width: 100%;
+      padding: 0.85rem;
+      background: linear-gradient(135deg, #6c63ff, #4f46e5);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 16px rgba(108, 99, 255, 0.4);
+    }
+
+    #analyzeBtn:hover:not(:disabled) {
+      opacity: 0.92;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(108, 99, 255, 0.55);
+    }
+
+    #analyzeBtn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    /* ── Loader ───────────────────────────────────────────────────── */
+    #loader {
+      display: none;
+      align-items: center;
+      gap: 0.6rem;
+      justify-content: center;
+      margin-top: 1.25rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error Banner ─────────────────────────────────────────────── */
+    #errorBanner {
+      display: none;
+      margin-top: 1.25rem;
+      padding: 0.85rem 1rem;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 8px;
+      color: #fca5a5;
+      font-size: 0.88rem;
+    }
+
+    /* ── Results ──────────────────────────────────────────────────── */
+    #results {
+      display: none;
+      margin-top: 2rem;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .result-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .risk-badge {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .risk-Low    { background: rgba(34,197,94,0.15);  color: var(--green); border: 1px solid rgba(34,197,94,0.4); }
+    .risk-Medium { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.4); }
+    .risk-High   { background: rgba(239,68,68,0.15);  color: var(--red);   border: 1px solid rgba(239,68,68,0.4); }
+    .risk-Unknown{ background: rgba(100,116,139,0.15);color: var(--muted); border: 1px solid var(--border); }
+
+    /* KPI strip */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .kpi {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+    }
+
+    .kpi-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.4rem;
+    }
+
+    .kpi-value {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .kpi-value.increase { color: var(--green); }
+    .kpi-value.decrease { color: var(--red); }
+    .kpi-value.hold     { color: var(--amber); }
+
+    /* Confidence bar */
+    .confidence-bar-wrap { margin-top: 0.5rem; }
+    .confidence-track {
+      width: 100%;
+      height: 5px;
+      background: var(--border);
+      border-radius: 999px;
+      margin-top: 0.4rem;
+      overflow: hidden;
+    }
+    .confidence-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #6c63ff, #22c55e);
+      transition: width 0.6s ease;
+    }
+
+    /* Explanation */
+    .explanation-box {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .explanation-box h3 {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.65rem;
+    }
+
+    .explanation-box p {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    /* Reasoning chips */
+    .reasons-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .reason-chip {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: #a1afc6;
+      line-height: 1.5;
+    }
+
+    .reason-chip::before {
+      content: "›";
+      color: var(--accent);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.5rem 0;
+    }
+
+    /* Feature debug accordion */
+    details { margin-top: 1.25rem; }
+
+    summary {
+      font-size: 0.8rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      font-weight: 500;
+    }
+
+    summary:hover { color: var(--accent); }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .feature-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      padding: 0.4rem 0.75rem;
+      background: var(--bg-input);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .feature-row span:first-child { color: var(--muted); }
+    .feature-row span:last-child  { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    /* ── Footer ───────────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      margin-top: 2.5rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="logo-pill">AI · Pricing Intelligence</div>
+    <h1>Dynamic E-Commerce Pricing Agent</h1>
+    <p>Rule-based decisions · Gemini LLM explanations · Confidence scoring</p>
+  </header>
+
+  <!-- ── Input Form ── -->
+  <div class="card">
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="stockCode">Stock Code</label>
+        <input type="text" id="stockCode" placeholder="e.g. 85123A" maxlength="20" />
+      </div>
+      <div class="form-group">
+        <label for="currentPrice">Current Price (£)</label>
+        <input type="number" id="currentPrice" placeholder="e.g. 2.55" min="0.01" step="0.01" />
+      </div>
+      <div class="form-group">
+        <label for="competitorPrice">Competitor Price (£)</label>
+        <input type="number" id="competitorPrice" placeholder="e.g. 2.30" min="0.01" step="0.01" />
+      </div>
+    </div>
+
+    <button id="analyzeBtn">Run Pricing Analysis</button>
+
+    <div id="loader">
+      <div class="spinner"></div>
+      <span>Running pipeline: features → decision → LLM explanation …</span>
+    </div>
+
+    <div id="errorBanner"></div>
+  </div>
+
+  <!-- ── Results ── -->
+  <div id="results">
+    <div class="card">
+
+      <!-- Header row -->
+      <div class="result-header">
+        <h2>Analysis Result — <span id="resStockCode"></span></h2>
+        <span id="riskBadge" class="risk-badge"></span>
+      </div>
+
+      <!-- KPI strip -->
+      <div class="kpi-strip">
+        <div class="kpi">
+          <div class="kpi-label">Recommended Price</div>
+          <div id="recPrice" class="kpi-value">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Decision</div>
+          <div id="decisionType" class="kpi-value">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Confidence</div>
+          <div id="confidenceVal" class="kpi-value">—</div>
+          <div class="confidence-bar-wrap confidence-track">
+            <div id="confidenceFill" class="confidence-fill" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Sales Trend</div>
+          <div id="salesTrend" class="kpi-value">—</div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Executive Summary -->
+      <div class="explanation-box">
+        <h3>Executive Summary</h3>
+        <p id="execSummary"></p>
+      </div>
+
+      <!-- Explanation -->
+      <div class="explanation-box">
+        <h3>Business Explanation</h3>
+        <p id="explanation"></p>
+      </div>
+
+      <!-- Risk Rationale -->
+      <div class="explanation-box">
+        <h3>Risk Rationale</h3>
+        <p id="riskRationale"></p>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Reasoning Factors -->
+      <div class="explanation-box">
+        <h3>Decision Factors</h3>
+        <div id="reasonsList" class="reasons-list"></div>
+      </div>
+
+      <!-- Feature accordion -->
+      <details>
+        <summary>▸ View Raw Feature Data</summary>
+        <div id="featureGrid" class="feature-grid"></div>
+      </details>
+
+    </div>
+  </div>
+
+  <footer>Built with FastAPI · Pandas · Google Gemini · Vanilla JS</footer>
+
+</div>
+
+<script>
+  const btn             = document.getElementById('analyzeBtn');
+  const loader          = document.getElementById('loader');
+  const errorBanner     = document.getElementById('errorBanner');
+  const results         = document.getElementById('results');
+
+  btn.addEventListener('click', async () => {
+    const stockCode       = document.getElementById('stockCode').value.trim();
+    const currentPrice    = parseFloat(document.getElementById('currentPrice').value);
+    const competitorPrice = parseFloat(document.getElementById('competitorPrice').value);
+
+    // ── Client-side validation ──────────────────────────────────────
+    if (!stockCode) { return showError('Please enter a Stock Code.'); }
+    if (!currentPrice || currentPrice <= 0) { return showError('Enter a valid Current Price (> 0).'); }
+    if (!competitorPrice || competitorPrice <= 0) { return showError('Enter a valid Competitor Price (> 0).'); }
+
+    setLoading(true);
+    hideError();
+    results.style.display = 'none';
+
+    try {
+      const res = await fetch('/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stock_code: stockCode, current_price: currentPrice, competitor_price: competitorPrice }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Unknown server error.' }));
+        throw new Error(err.detail || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      renderResults(data);
+    } catch (err) {
+      showError('Analysis failed: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  function renderResults(d) {
+    document.getElementById('resStockCode').textContent  = d.stock_code;
+    document.getElementById('recPrice').textContent      = '£' + d.recommended_price.toFixed(2);
+    document.getElementById('execSummary').textContent   = d.executive_summary;
+    document.getElementById('explanation').textContent   = d.explanation;
+    document.getElementById('riskRationale').textContent = d.risk_rationale;
+
+    // Decision type with color
+    const dtEl = document.getElementById('decisionType');
+    dtEl.textContent  = d.decision_type.toUpperCase();
+    dtEl.className    = 'kpi-value ' + d.decision_type.toLowerCase();
+
+    // Confidence bar
+    const pct = Math.round(d.confidence_score * 100);
+    document.getElementById('confidenceVal').textContent = pct + '%';
+    document.getElementById('confidenceFill').style.width = pct + '%';
+
+    // Sales trend
+    document.getElementById('salesTrend').textContent = d.features?.sales_trend ?? '—';
+
+    // Risk badge
+    const rb    = document.getElementById('riskBadge');
+    rb.textContent  = 'Risk: ' + (d.risk_level || 'Unknown');
+    rb.className    = 'risk-badge risk-' + (d.risk_level || 'Unknown');
+
+    // Reasoning factors
+    const rList = document.getElementById('reasonsList');
+    rList.innerHTML = '';
+    (d.reasoning_factors || []).forEach(f => {
+      const chip = document.createElement('div');
+      chip.className   = 'reason-chip';
+      chip.textContent = f;
+      rList.appendChild(chip);
+    });
+
+    // Feature grid
+    const fg = document.getElementById('featureGrid');
+    fg.innerHTML = '';
+    const feat = d.features || {};
+    const labels = {
+      avg_price:           'Avg Price',
+      demand_velocity:     'Demand Velocity',
+      price_volatility:    'Price Volatility',
+      total_sales_last_30d:'Sales Last 30d (£)',
+      sales_trend:         'Sales Trend',
+      inventory_proxy:     'Inventory Proxy',
+      data_coverage_ratio: 'Data Coverage',
+      record_count:        'Records',
+    };
+    Object.entries(labels).forEach(([k, lbl]) => {
+      if (feat[k] === undefined) return;
+      const row = document.createElement('div');
+      row.className = 'feature-row';
+      const v = typeof feat[k] === 'number' ? feat[k].toLocaleString(undefined, { maximumFractionDigits: 3 }) : feat[k];
+      row.innerHTML = `<span>${lbl}</span><span>${v}</span>`;
+      fg.appendChild(row);
+    });
+
+    results.style.display = 'block';
+    results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function setLoading(state) {
+    btn.disabled         = state;
+    btn.textContent      = state ? 'Analyzing …' : 'Run Pricing Analysis';
+    loader.style.display = state ? 'flex' : 'none';
+  }
+
+  function showError(msg) {
+    errorBanner.style.display = 'block';
+    errorBanner.textContent   = '⚠ ' + msg;
+  }
+
+  function hideError() {
+    errorBanner.style.display = 'none';
+    errorBanner.textContent   = '';
+  }
+</script>
+
+</body>
+</html>

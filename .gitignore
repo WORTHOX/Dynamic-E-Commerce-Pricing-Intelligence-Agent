@@ -1,0 +1,33 @@
+# Secrets & keys — NEVER commit
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Personal / job-related docs — exclude from repo
+*.pdf
+20260215 Agntworks AI Native Generalist Engineer Job Description vf.docx.md
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs & temp
+*.log
+*.tmp
