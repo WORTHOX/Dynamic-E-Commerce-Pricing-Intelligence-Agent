@@ -1,14 +1,15 @@
 <div align="center">
 
 ```
-╔══════════════════════════════════════════════════════════════════╗
-║                                                                  ║
-║    ⚡  D Y N A M I C   P R I C I N G   A G E N T               ║
-║       ─────────────────────────────────────────                  ║
-║       E-Commerce Intelligence  ·  AI-Powered  ·  Production     ║
-║                                                                  ║
-╚══════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════╗
+║                                                          ║
+║             DYNAMIC E-COMMERCE PRICING AGENT             ║
+║             ────────────────────────────────             ║
+║          Rule-Based  ·  Gemini LLM  ·  FastAPI           ║
+║                                                          ║
+╚══════════════════════════════════════════════════════════╝
 ```
+
 
 **AI-powered dynamic pricing engine for e-commerce intelligence**  
 *Rule-based decisions · Gemini LLM reasoning · Confidence scoring · FastAPI backend*
