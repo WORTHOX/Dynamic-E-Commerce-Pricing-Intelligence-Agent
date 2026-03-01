@@ -1,30 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pricing Intelligence Agent | Dashboard</title>
-  <meta name="description" content="AI-powered dynamic pricing intelligence dashboard for e-commerce product price analysis." />
+  <meta name="description"
+    content="AI-powered dynamic pricing intelligence dashboard for e-commerce product price analysis." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    /* ── Reset & Base ─────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     :root {
-      --bg-deep:     #0d0f18;
-      --bg-card:     #13161f;
-      --bg-input:    #1a1d2b;
-      --border:      #242738;
-      --accent:      #6c63ff;
+      --bg-deep: #0d0f18;
+      --bg-card: #13161f;
+      --bg-input: #1a1d2b;
+      --border: #242738;
+      --accent: #6c63ff;
       --accent-glow: rgba(108, 99, 255, 0.35);
-      --green:       #22c55e;
-      --red:         #ef4444;
-      --amber:       #f59e0b;
-      --text:        #e2e8f0;
-      --muted:       #64748b;
-      --radius:      12px;
-      --shadow:      0 8px 32px rgba(0,0,0,0.45);
+      --green: #22c55e;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --radius: 12px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
     }
 
     body {
@@ -35,13 +42,12 @@
       padding: 2rem 1rem;
     }
 
-    /* ── Layout ───────────────────────────────────────────────────── */
     .container {
       max-width: 900px;
       margin: 0 auto;
     }
 
-    /* ── Header ───────────────────────────────────────────────────── */
+    /* Header */
     header {
       text-align: center;
       margin-bottom: 2.5rem;
@@ -76,7 +82,7 @@
       margin-top: 0.5rem;
     }
 
-    /* ── Card ─────────────────────────────────────────────────────── */
+    /* Card */
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -85,7 +91,7 @@
       box-shadow: var(--shadow);
     }
 
-    /* ── Form ─────────────────────────────────────────────────────── */
+    /* Form grid */
     .form-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -93,17 +99,35 @@
       margin-bottom: 1.5rem;
     }
 
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
     .form-group label {
-      display: block;
       font-size: 0.78rem;
       font-weight: 600;
       color: var(--muted);
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      margin-bottom: 0.45rem;
     }
 
-    .form-group input {
+    /* Searchable stock code wrapper — spans full width */
+    .stock-group {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap input,
+    .form-group input,
+    .desc-box {
       width: 100%;
       background: var(--bg-input);
       border: 1px solid var(--border);
@@ -115,15 +139,118 @@
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
+    .search-wrap input:focus,
     .form-group input:focus {
       outline: none;
       border-color: var(--accent);
       box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
-    .form-group input::placeholder { color: var(--muted); opacity: 0.7; }
+    input::placeholder,
+    .desc-box {
+      color: var(--muted);
+    }
 
-    /* ── Button ───────────────────────────────────────────────────── */
+    /* Description box — read-only */
+    .desc-box {
+      background: rgba(108, 99, 255, 0.06);
+      border-color: rgba(108, 99, 255, 0.25);
+      color: var(--text);
+      font-size: 0.88rem;
+      font-style: italic;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      cursor: default;
+      user-select: none;
+    }
+
+    .desc-box.filled {
+      color: #c3b1ff;
+      font-style: normal;
+      font-weight: 500;
+    }
+
+    /* Dropdown list */
+    #dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: #1e2133;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      max-height: 240px;
+      overflow-y: auto;
+      z-index: 999;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    #dropdown.open {
+      display: block;
+    }
+
+    .dd-item {
+      padding: 0.6rem 1rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.88rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      transition: background 0.15s;
+    }
+
+    .dd-item:last-child {
+      border-bottom: none;
+    }
+
+    .dd-item:hover,
+    .dd-item.highlighted {
+      background: rgba(108, 99, 255, 0.18);
+    }
+
+    .dd-code {
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 70px;
+      font-family: monospace;
+    }
+
+    .dd-desc {
+      color: var(--muted);
+      font-size: 0.82rem;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dd-price {
+      color: var(--green);
+      font-weight: 600;
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+
+    .dd-empty {
+      padding: 0.75rem 1rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    /* Loading state in dropdown */
+    .dd-loading {
+      padding: 0.75rem 1rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    /* Button */
     #analyzeBtn {
       width: 100%;
       padding: 0.85rem;
@@ -145,9 +272,13 @@
       box-shadow: 0 8px 24px rgba(108, 99, 255, 0.55);
     }
 
-    #analyzeBtn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+    #analyzeBtn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
 
-    /* ── Loader ───────────────────────────────────────────────────── */
+    /* Loader */
     #loader {
       display: none;
       align-items: center;
@@ -159,16 +290,21 @@
     }
 
     .spinner {
-      width: 18px; height: 18px;
+      width: 18px;
+      height: 18px;
       border: 2px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
 
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
-    /* ── Error Banner ─────────────────────────────────────────────── */
+    /* Error */
     #errorBanner {
       display: none;
       margin-top: 1.25rem;
@@ -180,7 +316,7 @@
       font-size: 0.88rem;
     }
 
-    /* ── Results ──────────────────────────────────────────────────── */
+    /* Results */
     #results {
       display: none;
       margin-top: 2rem;
@@ -212,12 +348,30 @@
       text-transform: uppercase;
     }
 
-    .risk-Low    { background: rgba(34,197,94,0.15);  color: var(--green); border: 1px solid rgba(34,197,94,0.4); }
-    .risk-Medium { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.4); }
-    .risk-High   { background: rgba(239,68,68,0.15);  color: var(--red);   border: 1px solid rgba(239,68,68,0.4); }
-    .risk-Unknown{ background: rgba(100,116,139,0.15);color: var(--muted); border: 1px solid var(--border); }
+    .risk-Low {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+    }
 
-    /* KPI strip */
+    .risk-Medium {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--amber);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .risk-High {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .risk-Unknown {
+      background: rgba(100, 116, 139, 0.15);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
     .kpi-strip {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -247,12 +401,18 @@
       color: var(--text);
     }
 
-    .kpi-value.increase { color: var(--green); }
-    .kpi-value.decrease { color: var(--red); }
-    .kpi-value.hold     { color: var(--amber); }
+    .kpi-value.increase {
+      color: var(--green);
+    }
 
-    /* Confidence bar */
-    .confidence-bar-wrap { margin-top: 0.5rem; }
+    .kpi-value.decrease {
+      color: var(--red);
+    }
+
+    .kpi-value.hold {
+      color: var(--amber);
+    }
+
     .confidence-track {
       width: 100%;
       height: 5px;
@@ -261,6 +421,7 @@
       margin-top: 0.4rem;
       overflow: hidden;
     }
+
     .confidence-fill {
       height: 100%;
       border-radius: 999px;
@@ -268,7 +429,6 @@
       transition: width 0.6s ease;
     }
 
-    /* Explanation */
     .explanation-box {
       background: var(--bg-input);
       border: 1px solid var(--border);
@@ -292,7 +452,6 @@
       color: var(--text);
     }
 
-    /* Reasoning chips */
     .reasons-list {
       display: flex;
       flex-direction: column;
@@ -315,15 +474,15 @@
       flex-shrink: 0;
     }
 
-    /* Divider */
     .divider {
       border: none;
       border-top: 1px solid var(--border);
       margin: 1.5rem 0;
     }
 
-    /* Feature debug accordion */
-    details { margin-top: 1.25rem; }
+    details {
+      margin-top: 1.25rem;
+    }
 
     summary {
       font-size: 0.8rem;
@@ -333,7 +492,9 @@
       font-weight: 500;
     }
 
-    summary:hover { color: var(--accent); }
+    summary:hover {
+      color: var(--accent);
+    }
 
     .feature-grid {
       display: grid;
@@ -352,248 +513,366 @@
       border: 1px solid var(--border);
     }
 
-    .feature-row span:first-child { color: var(--muted); }
-    .feature-row span:last-child  { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .feature-row span:first-child {
+      color: var(--muted);
+    }
 
-    /* ── Footer ───────────────────────────────────────────────────── */
+    .feature-row span:last-child {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
     footer {
       text-align: center;
       margin-top: 2.5rem;
       font-size: 0.75rem;
       color: var(--muted);
     }
+
+    /* Scrollbar for dropdown */
+    #dropdown::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #dropdown::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #dropdown::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
   </style>
 </head>
+
 <body>
 
-<div class="container">
+  <div class="container">
 
-  <header>
-    <div class="logo-pill">AI · Pricing Intelligence</div>
-    <h1>Dynamic E-Commerce Pricing Agent</h1>
-    <p>Rule-based decisions · Gemini LLM explanations · Confidence scoring</p>
-  </header>
+    <header>
+      <div class="logo-pill">AI · Pricing Intelligence</div>
+      <h1>Dynamic E-Commerce Pricing Agent</h1>
+      <p>Rule-based decisions · Gemini LLM explanations · Confidence scoring</p>
+    </header>
 
-  <!-- ── Input Form ── -->
-  <div class="card">
-    <div class="form-grid">
-      <div class="form-group">
-        <label for="stockCode">Stock Code</label>
-        <input type="text" id="stockCode" placeholder="e.g. 85123A" maxlength="20" />
-      </div>
-      <div class="form-group">
-        <label for="currentPrice">Current Price (£)</label>
-        <input type="number" id="currentPrice" placeholder="e.g. 2.55" min="0.01" step="0.01" />
-      </div>
-      <div class="form-group">
-        <label for="competitorPrice">Competitor Price (£)</label>
-        <input type="number" id="competitorPrice" placeholder="e.g. 2.30" min="0.01" step="0.01" />
-      </div>
-    </div>
-
-    <button id="analyzeBtn">Run Pricing Analysis</button>
-
-    <div id="loader">
-      <div class="spinner"></div>
-      <span>Running pipeline: features → decision → LLM explanation …</span>
-    </div>
-
-    <div id="errorBanner"></div>
-  </div>
-
-  <!-- ── Results ── -->
-  <div id="results">
     <div class="card">
+      <div class="form-grid">
 
-      <!-- Header row -->
-      <div class="result-header">
-        <h2>Analysis Result — <span id="resStockCode"></span></h2>
-        <span id="riskBadge" class="risk-badge"></span>
+        <!-- ── Stock Code Searchable Dropdown + Description ── -->
+        <div class="stock-group">
+
+          <div class="form-group">
+            <label for="stockSearch">Stock Code</label>
+            <div class="search-wrap">
+              <input type="text" id="stockSearch" placeholder="Type or pick a code… e.g. 85123A" autocomplete="off"
+                spellcheck="false" />
+              <div id="dropdown">
+                <div class="dd-loading">Loading products…</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Product Description</label>
+            <div id="descBox" class="desc-box">Select a stock code to see description</div>
+          </div>
+
+        </div>
+
+        <!-- ── Prices ── -->
+        <div class="form-group">
+          <label for="currentPrice">Current Price (£)</label>
+          <input type="number" id="currentPrice" placeholder="e.g. 2.55" min="0.01" step="0.01" />
+          <div id="priceHint" style="font-size:0.72rem;color:#6c63ff;margin-top:0.25rem;height:1em;"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="competitorPrice">Competitor Price (£)</label>
+          <input type="number" id="competitorPrice" placeholder="e.g. 2.30" min="0.01" step="0.01" />
+        </div>
+
       </div>
 
-      <!-- KPI strip -->
-      <div class="kpi-strip">
-        <div class="kpi">
-          <div class="kpi-label">Recommended Price</div>
-          <div id="recPrice" class="kpi-value">—</div>
+      <button id="analyzeBtn">Run Pricing Analysis</button>
+      <div id="loader">
+        <div class="spinner"></div><span>Running pipeline: features → decision → LLM explanation …</span>
+      </div>
+      <div id="errorBanner"></div>
+    </div>
+
+    <!-- Results -->
+    <div id="results">
+      <div class="card">
+        <div class="result-header">
+          <h2>Analysis Result — <span id="resStockCode"></span></h2>
+          <span id="riskBadge" class="risk-badge"></span>
         </div>
-        <div class="kpi">
-          <div class="kpi-label">Decision</div>
-          <div id="decisionType" class="kpi-value">—</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Confidence</div>
-          <div id="confidenceVal" class="kpi-value">—</div>
-          <div class="confidence-bar-wrap confidence-track">
-            <div id="confidenceFill" class="confidence-fill" style="width:0%"></div>
+
+        <div class="kpi-strip">
+          <div class="kpi">
+            <div class="kpi-label">Recommended Price</div>
+            <div id="recPrice" class="kpi-value">—</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Decision</div>
+            <div id="decisionType" class="kpi-value">—</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Confidence</div>
+            <div id="confidenceVal" class="kpi-value">—</div>
+            <div class="confidence-track">
+              <div id="confidenceFill" class="confidence-fill" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Sales Trend</div>
+            <div id="salesTrend" class="kpi-value">—</div>
           </div>
         </div>
-        <div class="kpi">
-          <div class="kpi-label">Sales Trend</div>
-          <div id="salesTrend" class="kpi-value">—</div>
+
+        <hr class="divider" />
+        <div class="explanation-box">
+          <h3>Executive Summary</h3>
+          <p id="execSummary"></p>
         </div>
+        <div class="explanation-box">
+          <h3>Business Explanation</h3>
+          <p id="explanation"></p>
+        </div>
+        <div class="explanation-box">
+          <h3>Risk Rationale</h3>
+          <p id="riskRationale"></p>
+        </div>
+        <hr class="divider" />
+        <div class="explanation-box">
+          <h3>Decision Factors</h3>
+          <div id="reasonsList" class="reasons-list"></div>
+        </div>
+
+        <details>
+          <summary>▸ View Raw Feature Data</summary>
+          <div id="featureGrid" class="feature-grid"></div>
+        </details>
       </div>
-
-      <hr class="divider" />
-
-      <!-- Executive Summary -->
-      <div class="explanation-box">
-        <h3>Executive Summary</h3>
-        <p id="execSummary"></p>
-      </div>
-
-      <!-- Explanation -->
-      <div class="explanation-box">
-        <h3>Business Explanation</h3>
-        <p id="explanation"></p>
-      </div>
-
-      <!-- Risk Rationale -->
-      <div class="explanation-box">
-        <h3>Risk Rationale</h3>
-        <p id="riskRationale"></p>
-      </div>
-
-      <hr class="divider" />
-
-      <!-- Reasoning Factors -->
-      <div class="explanation-box">
-        <h3>Decision Factors</h3>
-        <div id="reasonsList" class="reasons-list"></div>
-      </div>
-
-      <!-- Feature accordion -->
-      <details>
-        <summary>▸ View Raw Feature Data</summary>
-        <div id="featureGrid" class="feature-grid"></div>
-      </details>
-
     </div>
+
+    <footer>Built with FastAPI · Pandas · Google Gemini · Vanilla JS</footer>
   </div>
 
-  <footer>Built with FastAPI · Pandas · Google Gemini · Vanilla JS</footer>
+  <script>
+    // ── State ─────────────────────────────────────────────────────────────────
+    let allProducts = [];     // [{stock_code, description, avg_price}]
+    let selectedCode = '';     // currently confirmed stock code
+    let highlightIdx = -1;
 
-</div>
+    const searchInput = document.getElementById('stockSearch');
+    const dropdown = document.getElementById('dropdown');
+    const descBox = document.getElementById('descBox');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const loader = document.getElementById('loader');
+    const errorBanner = document.getElementById('errorBanner');
+    const results = document.getElementById('results');
 
-<script>
-  const btn             = document.getElementById('analyzeBtn');
-  const loader          = document.getElementById('loader');
-  const errorBanner     = document.getElementById('errorBanner');
-  const results         = document.getElementById('results');
+    // ── Load products catalog on page load ───────────────────────────────────
+    async function loadProducts() {
+      try {
+        const res = await fetch('/products');
+        allProducts = await res.json();
+      } catch (e) {
+        allProducts = [];
+      }
+      // Replace loading indicator
+      dropdown.innerHTML = '';
+    }
+    loadProducts();
 
-  btn.addEventListener('click', async () => {
-    const stockCode       = document.getElementById('stockCode').value.trim();
-    const currentPrice    = parseFloat(document.getElementById('currentPrice').value);
-    const competitorPrice = parseFloat(document.getElementById('competitorPrice').value);
+    // ── Dropdown logic ────────────────────────────────────────────────────────
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toUpperCase();
+      selectedCode = '';
+      setDescription(null);
 
-    // ── Client-side validation ──────────────────────────────────────
-    if (!stockCode) { return showError('Please enter a Stock Code.'); }
-    if (!currentPrice || currentPrice <= 0) { return showError('Enter a valid Current Price (> 0).'); }
-    if (!competitorPrice || competitorPrice <= 0) { return showError('Enter a valid Competitor Price (> 0).'); }
+      if (!q) { closeDropdown(); return; }
 
-    setLoading(true);
-    hideError();
-    results.style.display = 'none';
+      const matches = allProducts.filter(p =>
+        p.stock_code.includes(q) ||
+        p.description.toUpperCase().includes(q)
+      ).slice(0, 60);
 
-    try {
-      const res = await fetch('/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stock_code: stockCode, current_price: currentPrice, competitor_price: competitorPrice }),
+      renderDropdown(matches, q);
+    });
+
+    searchInput.addEventListener('focus', () => {
+      if (searchInput.value.trim()) {
+        const q = searchInput.value.trim().toUpperCase();
+        const matches = allProducts.filter(p =>
+          p.stock_code.includes(q) || p.description.toUpperCase().includes(q)
+        ).slice(0, 60);
+        renderDropdown(matches, q);
+      }
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+      const items = dropdown.querySelectorAll('.dd-item');
+      if (!items.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); highlightIdx = Math.min(highlightIdx + 1, items.length - 1); applyHighlight(items); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); highlightIdx = Math.max(highlightIdx - 1, 0); applyHighlight(items); }
+      else if (e.key === 'Enter' && highlightIdx >= 0) { e.preventDefault(); items[highlightIdx].click(); }
+      else if (e.key === 'Escape') closeDropdown();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-wrap')) closeDropdown();
+    });
+
+    function renderDropdown(matches, query) {
+      highlightIdx = -1;
+      dropdown.innerHTML = '';
+      if (!matches.length) {
+        dropdown.innerHTML = '<div class="dd-empty">No products found</div>';
+      } else {
+        matches.forEach(p => {
+          const item = document.createElement('div');
+          item.className = 'dd-item';
+          item.innerHTML = `
+          <span class="dd-code">${p.stock_code}</span>
+          <span class="dd-desc">${p.description}</span>
+          <span class="dd-price">£${p.last_price.toFixed(2)} <span style="opacity:0.5;font-size:0.75em">${p.last_date}</span></span>`;
+          item.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            selectProduct(p);
+          });
+          dropdown.appendChild(item);
+        });
+      }
+      dropdown.classList.add('open');
+    }
+
+    function applyHighlight(items) {
+      items.forEach((el, i) => el.classList.toggle('highlighted', i === highlightIdx));
+      if (highlightIdx >= 0) items[highlightIdx].scrollIntoView({ block: 'nearest' });
+    }
+
+    function selectProduct(p) {
+      selectedCode = p.stock_code;
+      searchInput.value = p.stock_code;
+      // Auto-fill current price with LAST TRANSACTION price (timestamp-accurate)
+      document.getElementById('currentPrice').value = p.last_price.toFixed(2);
+      // Show price date as a subtle hint below the input box
+      const hint = document.getElementById('priceHint');
+      if (hint) hint.textContent = `last sale: ${p.last_date}`;
+      setDescription(p.description);
+      closeDropdown();
+    }
+
+    function setDescription(desc) {
+      if (desc) {
+        descBox.textContent = desc;
+        descBox.classList.add('filled');
+      } else {
+        descBox.textContent = 'Select a stock code to see description';
+        descBox.classList.remove('filled');
+      }
+    }
+
+    function closeDropdown() {
+      dropdown.classList.remove('open');
+      highlightIdx = -1;
+    }
+
+    // ── Analyze ───────────────────────────────────────────────────────────────
+    analyzeBtn.addEventListener('click', async () => {
+      const stockCode = (selectedCode || searchInput.value).trim().toUpperCase();
+      const currentPrice = parseFloat(document.getElementById('currentPrice').value);
+      const competitorPrice = parseFloat(document.getElementById('competitorPrice').value);
+
+      if (!stockCode) return showError('Please select or enter a Stock Code.');
+      if (!currentPrice || currentPrice <= 0) return showError('Enter a valid Current Price (> 0).');
+      if (!competitorPrice || competitorPrice <= 0) return showError('Enter a valid Competitor Price (> 0).');
+
+      setLoading(true);
+      hideError();
+      results.style.display = 'none';
+
+      try {
+        const res = await fetch('/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stock_code: stockCode, current_price: currentPrice, competitor_price: competitorPrice }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ detail: 'Unknown server error.' }));
+          throw new Error(err.detail || `HTTP ${res.status}`);
+        }
+        renderResults(await res.json());
+      } catch (err) {
+        showError('Analysis failed: ' + err.message);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // ── Render ────────────────────────────────────────────────────────────────
+    function renderResults(d) {
+      document.getElementById('resStockCode').textContent = d.stock_code;
+      document.getElementById('recPrice').textContent = '£' + d.recommended_price.toFixed(2);
+      document.getElementById('execSummary').textContent = d.executive_summary;
+      document.getElementById('explanation').textContent = d.explanation;
+      document.getElementById('riskRationale').textContent = d.risk_rationale;
+
+      const dtEl = document.getElementById('decisionType');
+      dtEl.textContent = d.decision_type.toUpperCase();
+      dtEl.className = 'kpi-value ' + d.decision_type.toLowerCase();
+
+      const pct = Math.round(d.confidence_score * 100);
+      document.getElementById('confidenceVal').textContent = pct + '%';
+      document.getElementById('confidenceFill').style.width = pct + '%';
+      document.getElementById('salesTrend').textContent = d.features?.sales_trend ?? '—';
+
+      const rb = document.getElementById('riskBadge');
+      rb.textContent = 'Risk: ' + (d.risk_level || 'Unknown');
+      rb.className = 'risk-badge risk-' + (d.risk_level || 'Unknown');
+
+      const rList = document.getElementById('reasonsList');
+      rList.innerHTML = '';
+      (d.reasoning_factors || []).forEach(f => {
+        const chip = document.createElement('div');
+        chip.className = 'reason-chip';
+        chip.textContent = f;
+        rList.appendChild(chip);
       });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: 'Unknown server error.' }));
-        throw new Error(err.detail || `HTTP ${res.status}`);
-      }
+      const fg = document.getElementById('featureGrid');
+      fg.innerHTML = '';
+      const labels = {
+        avg_price: 'Avg Price', demand_velocity: 'Demand Velocity',
+        price_volatility: 'Price Volatility', total_sales_last_30d: 'Sales Last 30d (£)',
+        sales_trend: 'Sales Trend', inventory_proxy: 'Inventory Proxy',
+        data_coverage_ratio: 'Data Coverage', record_count: 'Records',
+      };
+      const feat = d.features || {};
+      Object.entries(labels).forEach(([k, lbl]) => {
+        if (feat[k] === undefined) return;
+        const row = document.createElement('div');
+        row.className = 'feature-row';
+        const v = typeof feat[k] === 'number' ? feat[k].toLocaleString(undefined, { maximumFractionDigits: 3 }) : feat[k];
+        row.innerHTML = `<span>${lbl}</span><span>${v}</span>`;
+        fg.appendChild(row);
+      });
 
-      const data = await res.json();
-      renderResults(data);
-    } catch (err) {
-      showError('Analysis failed: ' + err.message);
-    } finally {
-      setLoading(false);
+      results.style.display = 'block';
+      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  });
 
-  function renderResults(d) {
-    document.getElementById('resStockCode').textContent  = d.stock_code;
-    document.getElementById('recPrice').textContent      = '£' + d.recommended_price.toFixed(2);
-    document.getElementById('execSummary').textContent   = d.executive_summary;
-    document.getElementById('explanation').textContent   = d.explanation;
-    document.getElementById('riskRationale').textContent = d.risk_rationale;
-
-    // Decision type with color
-    const dtEl = document.getElementById('decisionType');
-    dtEl.textContent  = d.decision_type.toUpperCase();
-    dtEl.className    = 'kpi-value ' + d.decision_type.toLowerCase();
-
-    // Confidence bar
-    const pct = Math.round(d.confidence_score * 100);
-    document.getElementById('confidenceVal').textContent = pct + '%';
-    document.getElementById('confidenceFill').style.width = pct + '%';
-
-    // Sales trend
-    document.getElementById('salesTrend').textContent = d.features?.sales_trend ?? '—';
-
-    // Risk badge
-    const rb    = document.getElementById('riskBadge');
-    rb.textContent  = 'Risk: ' + (d.risk_level || 'Unknown');
-    rb.className    = 'risk-badge risk-' + (d.risk_level || 'Unknown');
-
-    // Reasoning factors
-    const rList = document.getElementById('reasonsList');
-    rList.innerHTML = '';
-    (d.reasoning_factors || []).forEach(f => {
-      const chip = document.createElement('div');
-      chip.className   = 'reason-chip';
-      chip.textContent = f;
-      rList.appendChild(chip);
-    });
-
-    // Feature grid
-    const fg = document.getElementById('featureGrid');
-    fg.innerHTML = '';
-    const feat = d.features || {};
-    const labels = {
-      avg_price:           'Avg Price',
-      demand_velocity:     'Demand Velocity',
-      price_volatility:    'Price Volatility',
-      total_sales_last_30d:'Sales Last 30d (£)',
-      sales_trend:         'Sales Trend',
-      inventory_proxy:     'Inventory Proxy',
-      data_coverage_ratio: 'Data Coverage',
-      record_count:        'Records',
-    };
-    Object.entries(labels).forEach(([k, lbl]) => {
-      if (feat[k] === undefined) return;
-      const row = document.createElement('div');
-      row.className = 'feature-row';
-      const v = typeof feat[k] === 'number' ? feat[k].toLocaleString(undefined, { maximumFractionDigits: 3 }) : feat[k];
-      row.innerHTML = `<span>${lbl}</span><span>${v}</span>`;
-      fg.appendChild(row);
-    });
-
-    results.style.display = 'block';
-    results.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function setLoading(state) {
-    btn.disabled         = state;
-    btn.textContent      = state ? 'Analyzing …' : 'Run Pricing Analysis';
-    loader.style.display = state ? 'flex' : 'none';
-  }
-
-  function showError(msg) {
-    errorBanner.style.display = 'block';
-    errorBanner.textContent   = '⚠ ' + msg;
-  }
-
-  function hideError() {
-    errorBanner.style.display = 'none';
-    errorBanner.textContent   = '';
-  }
-</script>
+    function setLoading(state) {
+      analyzeBtn.disabled = state;
+      analyzeBtn.textContent = state ? 'Analyzing …' : 'Run Pricing Analysis';
+      loader.style.display = state ? 'flex' : 'none';
+    }
+    function showError(msg) { errorBanner.style.display = 'block'; errorBanner.textContent = '⚠ ' + msg; }
+    function hideError() { errorBanner.style.display = 'none'; errorBanner.textContent = ''; }
+  </script>
 
 </body>
+
 </html>

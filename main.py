@@ -119,6 +119,10 @@ class AnalyzeResponse(BaseModel):
     risk_rationale: str
     reasoning_factors: list[str]
     features: dict[str, Any]
+    convergence_score: float | None = None   # parabolic convergence fraction used
+    gap_fraction: float | None = None        # signed price gap vs target_price
+    target_price: float | None = None        # competitor × demand-scaled multiplier
+    target_mult: float | None = None         # the multiplier used (1.05–1.20)
 
 
 # --------------------------------------------------------------------------- #
@@ -136,6 +140,53 @@ async def health_check() -> dict[str, str]:
     if app_state.df_clean is None:
         raise HTTPException(status_code=503, detail="Dataset not loaded.")
     return {"status": "ok", "rows": str(len(app_state.df_clean))}
+
+
+@app.get("/products", tags=["catalog"])
+async def list_products() -> list[dict]:
+    """
+    Return all unique products with:
+      - description   : product name
+      - last_price    : UnitPrice from the MOST RECENT transaction (by InvoiceDate)
+      - avg_price     : all-time mean (for reference only)
+
+    last_price is the timestamp-accurate current market price, used to
+    auto-fill the 'Current Price' field in the dashboard.
+    avg_price is shown in the dropdown label only as context.
+    """
+    if app_state.df_clean is None:
+        raise HTTPException(status_code=503, detail="Dataset not initialised.")
+
+    df = app_state.df_clean
+
+    # Most recent transaction price per product — sort by date, take last row
+    latest_price = (
+        df.sort_values("InvoiceDate")
+        .groupby("StockCode", as_index=False)
+        .agg(
+            last_price=("UnitPrice",  "last"),       # price at most recent timestamp
+            last_date= ("InvoiceDate","last"),       # when was that price recorded
+            description=("Description", "last"),    # desc from same period
+        )
+    )
+
+    # All-time avg for reference in dropdown label
+    avg_by_code = (
+        df.groupby("StockCode")["UnitPrice"].mean().round(2).rename("avg_price")
+    )
+
+    catalog = latest_price.join(avg_by_code, on="StockCode").sort_values("StockCode")
+
+    return [
+        {
+            "stock_code":  row.StockCode,
+            "description": str(row.description).strip().title(),
+            "last_price":  round(row.last_price, 2),           # ← use this for current price
+            "avg_price":   round(row.avg_price, 2),            # ← shown in dropdown label
+            "last_date":   str(row.last_date.date()),          # ← when this price was recorded
+        }
+        for row in catalog.itertuples()
+    ]
 
 
 @app.post("/analyze", response_model=AnalyzeResponse, tags=["pricing"])
@@ -221,4 +272,8 @@ async def analyze_product(body: AnalyzeRequest) -> AnalyzeResponse:
         risk_rationale    = llm_output["risk_rationale"],
         reasoning_factors = decision["reasoning_factors"],
         features          = features,
+        convergence_score = decision.get("convergence_score"),
+        gap_fraction      = decision.get("gap_fraction"),
+        target_price      = decision.get("target_price"),
+        target_mult       = decision.get("target_mult"),
     )
